@@ -54,6 +54,7 @@ def process_log_file(cur, filepath):
     # insert time data records
     time_df = pd.DataFrame()
     time_df['start_time'] = t
+    time_df = time_df[~time_df['start_time'].isnull()]
     time_df['hour'] = t.apply(lambda d: d.hour)
     time_df['day'] = t.apply(lambda d: d.day)
     time_df['week'] = t.apply(lambda d: d.week)
@@ -70,12 +71,13 @@ def process_log_file(cur, filepath):
                   'lastName',
                   'gender',
                   'level']]
-
+    user_df = user_df[~user_df['userId'].isnull()]
     # insert user records
     for i, row in user_df.iterrows():
         cur.execute(user_table_insert, row)
 
     # insert songplay records
+    df = df[~(df['userId'].isnull() | df['ts'].isnull())]
     for index, row in df.iterrows():
         
         # get songid and artistid from song and artist tables
@@ -87,15 +89,8 @@ def process_log_file(cur, filepath):
         else:
             songid, artistid = None, None
 
-        # Get the max songplay_id that already exists, and increment index
-        # from there.
-        cur.execute("select max(songplay_id) from songplays")
-        max_id = cur.fetchone()[0]
-        max_id = 0 if max_id is None else max_id
-
         # insert songplay record
-        songplay_data = (max_id + index,
-                         row.ts,
+        songplay_data = (row.ts,
                          row.userId,
                          row.level,
                          songid,

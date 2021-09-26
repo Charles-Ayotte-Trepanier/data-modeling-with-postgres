@@ -10,9 +10,9 @@ time_table_drop = "drop table if exists time"
 
 songplay_table_create = ("""
 create table if not exists songplays(
-  songplay_id int,
-  start_time timestamp,
-  user_id int,
+  songplay_id serial,
+  start_time timestamp not null,
+  user_id int not null,
   level varchar,
   song_id varchar,
   artist_id varchar,
@@ -36,7 +36,7 @@ song_table_create = ("""
 create table if not exists songs(
   song_id varchar,
   title varchar,
-  artist_id varchar,
+  artist_id varchar  not null,
   year int,
   duration float,
   PRIMARY KEY (song_id))
@@ -67,8 +67,7 @@ create table if not exists time(
 
 # INSERT RECORDS
 
-songplay_cols = ['songplay_id',
-                 'start_time',
+songplay_cols = ['start_time',
                  'user_id',
                  'level',
                  'song_id',
@@ -99,7 +98,10 @@ insert into users(
   ({('%s,'*(len(user_cols)-1)) + '%s'} )
   
 ON CONFLICT (user_id) 
-DO NOTHING
+DO UPDATE 
+  SET 
+  gender = EXCLUDED.gender,
+  level = EXCLUDED.level
 """
 )
 
